@@ -6,17 +6,30 @@ using System.Threading.Tasks;
 
 namespace PhoneBook
 {
-    public class Contact
+    public class Contact : ICloneable, IContact
     {
-        public string Name { get; set; }
-        public string Surname { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
         public string[] Phones { get; set; }
         public string FullName
         {
             get
             {
-                return $"{Name} {Surname}";
+                return $"{FirstName} {LastName}";
             }
+        }
+
+        public char? FirstLetter
+        {
+            get
+            {
+                return string.IsNullOrEmpty(FullName) ? null : FullName[0];
+            }
+        }
+
+        public object Clone()
+        {
+            return new Contact { FirstName = FirstName, LastName = LastName };
         }
     }
 }

@@ -1,66 +1,158 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PhoneBook
 {
-    public class PhoneCollection : ICollection<Contact>
+    public class PhoneCollection : ICollection<IContact>, IEnumerable<IContact>
     {
-        private SortedDictionary<char, SortedDictionary<string, Contact>> _book = new SortedDictionary<char, SortedDictionary<string, Contact>>();
-        public int Count => throw new NotImplementedException();
+        private SortedDictionary<char, SortedDictionary<string, IContact>> _book = new SortedDictionary<char, SortedDictionary<string, IContact>>();
 
-        public bool IsReadOnly => throw new NotImplementedException();
-
-        public void Add(Contact item)
+        private AlphabetSet _alphabet = new AlphabetSet();
+        public LocaleEnum TempLocale { get; set; }
+        public int Count
         {
-            if (item != null && string.IsNullOrEmpty(item.FullName))
+            get
             {
-                var letter = item.FullName[0];
-                if (!_book.ContainsKey(letter))
+                return ToList.Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        private List<IContact> ToList
+        {
+            get
+            {
+                var result = new List<IContact>();
+                foreach (var item in _book.Keys)
                 {
-                    _book.Add(letter, new SortedDictionary<string, Contact>());
+                    result.AddRange(_book[item].Values);
                 }
 
-                _book[letter].Add(item.FullName, item);
-                else if (item != null && !_book.ContainsKey('#'))
-                {
-                    _book.Add('#', new SortedDictionary<string, Contact>());
-                }
+                return result;
             }
-            
+        }
+
+        public void Add(IContact item)
+        {
+            char? upperKey = GetUpperKey(item);
+            if (item == null || upperKey == null || Contains(item))
+            {
+                return;
+            }
+
+            if (!_book.ContainsKey((char)upperKey))
+            {
+                _book.Add((char)upperKey, new SortedDictionary<string, IContact>());
+            }
+
+            _book[(char)upperKey].Add(item.FullName, item);
         }
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            _book.Clear();
         }
 
-        public bool Contains(T item)
+        public bool Contains(IContact item)
         {
-            throw new NotImplementedException();
+            var key = GetUpperKey(item);
+            if (key != null && _book.ContainsKey((char)key) && _book[(char)key].ContainsKey(item.FullName))
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        public void CopyTo(T[] array, int arrayIndex)
+        public char? GetUpperKey(IContact item)
         {
-            throw new NotImplementedException();
+            if (item == null)
+            {
+                return null;
+            }
+
+            if (item.FirstLetter != null)
+            {
+                var letter = (char)item.FirstLetter;
+                if (_alphabet.Alphabet[TempLocale].Contains(letter))
+                {
+                    return letter;
+                }
+                else if (char.IsDigit(letter))
+                {
+                    return '0';
+                }
+            }
+
+            return '#';
         }
 
-        public bool Remove(T item)
+        public SortedDictionary<string, IContact> GetLink(IContact item)
         {
-            throw new NotImplementedException();
+            if (Contains(item))
+            {
+                var firstLetter = (char)item.FirstLetter;
+                if (_alphabet.Alphabet[TempLocale].Contains(firstLetter))
+                {
+                    return _book[firstLetter];
+                }
+                else if (char.IsDigit(firstLetter))
+                {
+                    return _book['0'];
+                }
+                else
+                {
+                    return _book['#'];
+                }
+            }
+
+            return null;
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public bool Remove(IContact item)
         {
-            throw new NotImplementedException();
+            if (item == null && !Contains(item))
+            {
+                return false;
+            }
+
+            var upperKey = GetUpperKey(item);
+            _book[(char)upperKey].Remove(item.FullName);
+            if (_book[(char)upperKey].Count == 0)
+            {
+                _book.Remove((char)upperKey);
+            }
+
+            return true;
+        }
+
+        public IEnumerator<IContact> GetEnumerator()
+        {
+            foreach (var upperKey in _book.Keys)
+            {
+                foreach (var contact in _book[upperKey].Values)
+                {
+                    yield return contact;
+                }
+            }
+        }
+
+        public void CopyTo(IContact[] array, int arrayIndex)
+        {
+            ToList.CopyTo(array, arrayIndex);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return (IEnumerator)GetEnumerator();
         }
     }
 }
