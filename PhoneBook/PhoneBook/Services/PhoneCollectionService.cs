@@ -4,12 +4,37 @@ using System.Collections.Generic;
 
 namespace PhoneBook
 {
-    public class PhoneCollection : ICollection<IContact>, IEnumerable<IContact>
+    public class PhoneCollectionService : ICollection<IContact>, IEnumerable<IContact>, IPhoneCollectionService
     {
         private SortedDictionary<char, SortedDictionary<string, IContact>> _book = new SortedDictionary<char, SortedDictionary<string, IContact>>();
 
         private AlphabetSet _alphabet = new AlphabetSet();
-        public LocaleEnum TempLocale { get; set; }
+
+        private LocaleEnum _tempLocale = LocaleEnum.EN;
+        public LocaleEnum TempLocale
+        {
+            get
+            {
+                return _tempLocale;
+            }
+            set
+            {
+                if (value == _tempLocale)
+                {
+                    return;
+                }
+
+                var container = ToList;
+                Clear();
+                _tempLocale = value;
+
+                foreach (var item in container)
+                {
+                    Add(item);
+                }
+            }
+        }
+
         public int Count
         {
             get
@@ -95,28 +120,6 @@ namespace PhoneBook
             return '#';
         }
 
-        public SortedDictionary<string, IContact> GetLink(IContact item)
-        {
-            if (Contains(item))
-            {
-                var firstLetter = (char)item.FirstLetter;
-                if (_alphabet.Alphabet[TempLocale].Contains(firstLetter))
-                {
-                    return _book[firstLetter];
-                }
-                else if (char.IsDigit(firstLetter))
-                {
-                    return _book['0'];
-                }
-                else
-                {
-                    return _book['#'];
-                }
-            }
-
-            return null;
-        }
-
         public bool Remove(IContact item)
         {
             if (item == null && !Contains(item))
@@ -148,6 +151,20 @@ namespace PhoneBook
         public void CopyTo(IContact[] array, int arrayIndex)
         {
             ToList.CopyTo(array, arrayIndex);
+        }
+
+        public void Display()
+        {
+            foreach (var key in _book.Keys)
+            {
+                Console.WriteLine($"Letter {(key == '0' ? "0-9" : key)}:");
+                foreach (var contact in _book[key].Values)
+                {
+                    Console.WriteLine($"\t{contact.ToString()}");
+                }
+            }
+
+            Console.WriteLine();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

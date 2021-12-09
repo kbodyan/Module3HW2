@@ -23,13 +23,28 @@ namespace PhoneBook
         {
             get
             {
-                return string.IsNullOrEmpty(FullName) ? null : FullName[0];
+                int number;
+                if (!string.IsNullOrEmpty(FullName))
+                {
+                    return char.ToUpper(FullName[0]);
+                }
+                else if (Phones != null && int.TryParse(Phones[0], out number))
+                {
+                    return number.ToString()[0];
+                }
+
+                return null;
             }
         }
 
         public object Clone()
         {
             return new Contact { FirstName = FirstName, LastName = LastName };
+        }
+
+        public override string ToString()
+        {
+            return $"{FullName}: {Phones[0]}";
         }
     }
 }

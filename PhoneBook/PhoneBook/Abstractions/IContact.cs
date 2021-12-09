@@ -9,5 +9,6 @@
         string[] Phones { get; set; }
 
         object Clone();
+        string ToString();
     }
 }

@@ -10,8 +10,8 @@ namespace PhoneBook
     {
         public Dictionary<LocaleEnum, string> Alphabet { get; } = new Dictionary<LocaleEnum, string>()
         {
-            [LocaleEnum.EN] = "ABCDEFGHIJKLMNO",
-            [LocaleEnum.RU] = "АБВГДЕЁЖЗИКЛМНОПРСТУФХ"
+            [LocaleEnum.EN] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            [LocaleEnum.RU] = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
         };
     }
 }
